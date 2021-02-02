@@ -1,5 +1,6 @@
 // ==UserScript==
 // @name        CopyPostHtml
+// @namespace   https://github.com/a549956952/CopyPostHtml
 // @description 复制Discuz!贴子HTML代码，方便制作EPUB。
 // @author      废喵
 // @include     *forum.php?*
