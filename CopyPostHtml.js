@@ -101,7 +101,7 @@ function addMenu() {
 function onMenu() {
     var url = window.location.href;
     var page = 1;
-    if(url.lastIndexOf('page=')) page = url.slice(url.lastIndexOf('page=')+5,url.indexOf('&',url.lastIndexOf('page=')) );
+    if(url.lastIndexOf('page=')) page = url.slice(url.lastIndexOf('page=')+5,url.indexOf('&',url.lastIndexOf('page='))!==-1?url.indexOf('&',url.lastIndexOf('page=')):url.length);
     var text= new String();
     var rep1 = /<br[^>]*>/ig;
     var rep2 = /<p><\/p>|<p>[\n]<\/p>/ig;
