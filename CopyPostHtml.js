@@ -9,6 +9,7 @@
 // @grant       GM_setValue
 // @grant       GM_registerMenuCommand
 // @grant       GM_unregisterMenuCommand
+// @run-at document-body
 // @version     2021.02.02
 // @name:zh-CN  复制帖子HTML
 // ==/UserScript==
@@ -127,6 +128,7 @@ function onMenu() {
             post=post+'</p>\n';
             post = post.replace( rep1, '</p><p>' );
             post = post.replace( rep2, '\n<br />' );
+            //post = post.replace(/<\/?font[^>]*>/gi, '');
         }
         text=text+"\n<\!-- "+title+" 第"+page+"页 第"+(i+1)+"楼 -->\n"+post;
     }
@@ -167,7 +169,12 @@ function onAutoMenu() {
     relaod();
 }
 addAutoMenu();
-
+const body = document.querySelector("body");
+body.addEventListener("dblclick", (e) => {
+			if (e.ctrlKey) {
+				onMenu();
+			}
+		})
 //自动复制
 if(isAuto)
 {
