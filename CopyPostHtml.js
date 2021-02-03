@@ -176,7 +176,9 @@ body.addEventListener("dblclick", (e) => {
 			}
 		})
 //自动复制
-if(isAuto)
-{
-    onMenu();
+window.onload = function(){
+    if(isAuto)
+    {
+        onMenu();
+    }
 }
