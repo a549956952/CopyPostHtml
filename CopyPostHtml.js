@@ -10,7 +10,7 @@
 // @grant       GM_registerMenuCommand
 // @grant       GM_unregisterMenuCommand
 // @run-at document-body
-// @version     2021.02.02
+// @version     2021.02.04
 // @name:zh-CN  复制帖子HTML
 // ==/UserScript==
 
@@ -19,11 +19,13 @@ var start= GM_getValue('start', 1); //起始楼层
 var end= GM_getValue('end', 1); //结束楼层
 var isReplaceing = GM_getValue('isReplaceing', false); //是否替换HTML
 var isAuto = GM_getValue('isAuto', false); //是否自动复制
+var isRemoveTag = GM_getValue('isRemoveTag', false); //是否自动去除标签
+var removeTag = GM_getValue('removeTag',['font','strong']); //自动去除标签
 
 //悬浮窗实现
 function Toast(msg,duration,mode){
     duration = typeof duration !== 'undefined'?duration : 3000;
-    mode = typeof mode !== 'undefined'?mode :"none"
+    mode = typeof mode !== 'undefined'?mode :"none";
     var m = document.createElement('div');
     m.innerHTML = msg;
     switch(mode) {
@@ -47,14 +49,14 @@ function Toast(msg,duration,mode){
 }
 
 //查找str里第num个cha的位置
-  function find(str,cha,num){
+function find(str,cha,num){
     num--;
     var x=str.indexOf(cha);
     for(var i=0;i<num;i++){
         x=str.indexOf(cha,x+1);
     }
     return x;
-    }
+}
 
 //复制到剪切板实现
 function copyToClipboard (text) {
@@ -76,14 +78,14 @@ function copyToClipboard (text) {
     textArea.value = text;
     document.body.appendChild(textArea);
     textArea.select();
-
+	var flag=false;
     try {
-        return document.execCommand('copy');
+        flag = document.execCommand('copy');
     } catch (err) {
-        return false;
+        flag = false;
     }
-
     document.body.removeChild(textArea);
+	return flag;
 }
 
 //重新加载会变动部分
@@ -91,8 +93,10 @@ function relaod()
 {
     GM_unregisterMenuCommand(replaceingMenuId);
     GM_unregisterMenuCommand(autoMenuId);
+	GM_unregisterMenuCommand(isRemoveTagMenuId);
     addReplaceingMenu();
-    addAutoMenu()
+    addAutoMenu();
+	addIsRemoveTagMenu();
 }
 
 //添加按钮
@@ -103,9 +107,9 @@ function onMenu() {
     var url = window.location.href;
     var page = 1;
     if(url.lastIndexOf('&page=')!==-1)
-       {
-           if(url.indexOf('&',url.lastIndexOf('&page=')+5)==-1) page = url.slice(url.lastIndexOf('&page=')+6); else page = url.slice(url.lastIndexOf('&page=')+6,url.indexOf('&',url.lastIndexOf('&page=')+5));
-       }
+    {
+        if(url.indexOf('&',url.lastIndexOf('&page=')+5)==-1) page = url.slice(url.lastIndexOf('&page=')+6); else page = url.slice(url.lastIndexOf('&page=')+6,url.indexOf('&',url.lastIndexOf('&page=')+5));
+    }
     var text= new String();
     var rep1 = /<br[^>]*>/ig;
     var rep2 = /<p><\/p>|<p>[\n]<\/p>/ig;
@@ -122,13 +126,21 @@ function onMenu() {
     for(var i = start-1;i<end;i++)
     {
         var post = posts[i].innerHTML;
+		if(isRemoveTag)
+		{
+			for(var j = 0;j<removeTag.length;j++)
+			{
+				var r =new RegExp("<\\/?" + removeTag[j] + "[^>]*>","gi");
+				post = post.replace(r,'');
+				//post = post.replace(/<\/?font[^>]*>/gi, '');
+			}
+		}
         if(isReplaceing)
         {
             post= post.slice(0,1)+"<p>"+post.slice(1)
             post=post+'</p>\n';
             post = post.replace( rep1, '</p><p>' );
             post = post.replace( rep2, '\n<br />' );
-            //post = post.replace(/<\/?font[^>]*>/gi, '');
         }
         text=text+"\n<\!-- "+title+" 第"+page+"页 第"+(i+1)+"楼 -->\n"+post;
     }
@@ -147,6 +159,17 @@ function onSettingMenu() {
     GM_setValue('end', end);
 }
 addSettingMenu();
+
+var settingTagMenuId;
+function addSettingTagMenu() {
+    settingTagMenuId = GM_registerMenuCommand('设置移除标签', onSettingTagMenu);
+}
+function onSettingTagMenu() {
+    var s =prompt("输入标签，英文逗号分隔(如font,strong)","font,strong");
+	removeTag = s.split(',');
+	GM_setValue('removeTag',removeTag);
+}
+addSettingTagMenu();
 
 var replaceingMenuId;
 function addReplaceingMenu() {
@@ -169,12 +192,25 @@ function onAutoMenu() {
     relaod();
 }
 addAutoMenu();
+
+var isRemoveTagMenuId;
+function addIsRemoveTagMenu() {
+    isRemoveTagMenuId = GM_registerMenuCommand('是否去除标签(' + (isRemoveTag ? '是' : '否') + ')', onIsRemoveTagMenu);
+}
+function onIsRemoveTagMenu() {
+    isRemoveTag = !isRemoveTag;
+    GM_setValue('isRemoveTag', isRemoveTag);
+    relaod();
+}
+addIsRemoveTagMenu();
+
 const body = document.querySelector("body");
 body.addEventListener("dblclick", (e) => {
-			if (e.ctrlKey) {
-				onMenu();
-			}
-		})
+    if (e.ctrlKey) {
+        onMenu();
+    }
+})
+
 //自动复制
 window.onload = function(){
     if(isAuto)
