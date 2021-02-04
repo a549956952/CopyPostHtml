@@ -13,3 +13,5 @@ Tampermonkey的js，用于复制Discuz!贴子HTML代码，方便制作EPUB。
 3.br标签包裹的段落替换成p标签包裹（可关闭）。
 
 4.复制成功或失败会有悬浮窗。
+
+5.移除指定HTML标签，用于适配css的样式。
